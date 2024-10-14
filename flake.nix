@@ -39,22 +39,48 @@
           # , system
           ...
         }:
+        let
+          inherit (pkgs) lib;
+        in
         {
           packages =
-            (pkgs.lib.packagesFromDirectoryRecursive {
-              inherit (pkgs) callPackage;
-              directory = ./packages;
-            });
+            lib.pipe
+              (lib.packagesFromDirectoryRecursive {
+                inherit (pkgs) callPackage;
+                directory = ./packages;
+              })
+              [
+                (x: lib.removeAttrs x [ "docker" ])
+                (lib.recursiveUpdate {
+                  default = pkgs.callPackage ./packages/docker.nix { inherit (self'.packages) self-streamlit; };
+                })
+              ];
 
           devshells.default = {
-            env = [ ];
+            env = [];
             commands = [
               {
-                name = "";
-                help = "";
-                command = "";
+                name = "build-and-push-x86";
+                help = "Full pipeline";
+                command = # bash
+                  ''
+                    set -euo pipefail
+                    set -x
+                    snow spcs image-registry token --format=JSON --connection="ci-cd" | skopeo login $REGISTRY_URL --username 0sessiontoken --password-stdin
+                    # snow spcs image-registry login
+                    nix build .#packages.x86_64-linux.default
+
+                    TAG="$REPOSITORY_URL/streamlit-spcs-scratch:latest"
+                    skopeo copy \
+                      --additional-tag "$TAG" \
+                      --insecure-policy `#otherwise fails loading policy.json `\
+                      docker-archive:result \
+                      docker://"$TAG"
+
+                  '';
               }
             ];
+            packages = [ pkgs.skopeo ];
           };
         };
 
