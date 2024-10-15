@@ -10,7 +10,7 @@ dockerTools.buildImage {
   tag = "latest";
   copyToRoot = buildEnv {
     name = "image-root";
-    paths = [ self-streamlit streamlit ];
+    paths = [ self-streamlit ];
 
   };
 
