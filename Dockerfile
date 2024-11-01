@@ -1,24 +1,21 @@
-FROM nixos/nix:latest AS builder
-COPY . /tmp/build
-WORKDIR /tmp/build
+# A sample docker file that builds this project.
+#
+# Pros:
+# - Trivial to extend and adapt to python tooling
+# Cons:
+# - Non-deterministic (fixable by pinning package versions)
+#
 
-# Build the package
-RUN nix \
-    --extra-experimental-features "nix-command flakes" \
-    --option filter-syscalls false \
-    build .#streamlit-runtime
-
-RUN mkdir -p /tmp/nix-store-closure
-# Copy the closure
-RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
-
-# Final image is based on scratch. We copy a bunch of Nix dependencies
-# but they're fully self-contained so we don't need Nix anymore.
-FROM scratch AS app-build
-
+# -slim is not possible, need g++ for snowflake-connector-python
+FROM python:3.10
+EXPOSE 8501
 WORKDIR /app
+COPY src/. .
 
-# Copy /nix/store
-COPY --from=builder /tmp/nix-store-closure /nix/store
-COPY --from=builder /tmp/build/result /app
-COPY /src /app
+# Replace with "pip install -r requirements.txt" or use your preferred python package manager
+RUN pip3 install streamlit
+RUN pip3 install snowflake-connector-python
+RUN pip3 install toolz
+RUN pip3 install snowflake-snowpark-python
+
+CMD ["python", "-m", "streamlit", "run", "/app/streamlit_app.py"]
