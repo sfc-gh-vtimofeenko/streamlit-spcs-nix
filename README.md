@@ -51,6 +51,9 @@ docker load < ./result && docker tag streamlit-spcs-scratch:latest "$REPOSITORY_
 ```
 
 `docker load ...` line can be replaced with your tool of choice (`podman`/`skopeo`) that works with docker archives
+This is effectively what docker+nix does, but allows to better use nix store
+caching. It would also require access to an x86_64-linux machine to build the
+image.
 
 # Creating a service
 
