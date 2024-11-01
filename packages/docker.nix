@@ -5,14 +5,13 @@
   buildEnv,
   streamlit,
 }:
-dockerTools.buildImage {
+dockerTools.buildLayeredImage {
   name = "streamlit-spcs-scratch";
   tag = "latest";
-  copyToRoot = buildEnv {
-    name = "image-root";
-    paths = [ self-streamlit ];
 
-  };
+  contents = [
+    self-streamlit
+  ];
 
   config = {
     Cmd = lib.pipe self-streamlit [
