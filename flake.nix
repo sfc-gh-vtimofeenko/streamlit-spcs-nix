@@ -52,7 +52,9 @@
               [
                 (x: lib.removeAttrs x [ "docker" ])
                 (lib.recursiveUpdate {
-                  default = pkgs.callPackage ./packages/docker.nix { inherit (self'.packages) self-streamlit; };
+                  default = pkgs.callPackage ./packages/docker.nix {
+                    inherit (self'.packages) app-source streamlit-runtime;
+                  };
                 })
               ];
 
