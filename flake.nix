@@ -59,14 +59,13 @@
               ];
 
           devshells.default = {
-            env = [];
+            env = [ ];
             commands = [
               {
                 name = "build-and-push-x86";
                 help = "Full pipeline";
                 command = # bash
                   ''
-                    set -euo pipefail
                     set -x
                     snow spcs image-registry token --format=JSON --connection="ci-cd" | skopeo login $REGISTRY_URL --username 0sessiontoken --password-stdin
                     # snow spcs image-registry login
